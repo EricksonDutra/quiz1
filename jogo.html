@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>QUIZ CIARAMA MÁQUINAS 2023 | Conselho Federal de Nutricionistas</title>
+
+    <!-- FAVICON -->
+    <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16x16.png">
+    <link rel="manifest" href="img/favicon/site.webmanifest">
+    <link rel="mask-icon" href="img/favicon/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+
+    <!-- META SEO -->
+    <meta name="title" content="QUIZ CIARAMA MÁQUINAS 2023 | Conselho Federal de Nutricionistas">
+    <meta name="description"
+        content="O QUIZ CIARAMA MÁQUINAS 2023 é um evento interativo e educacional organizado em colaboração entre o CIARAMA MÁQUINAS (Conselho Nacional de Secretarias Municipais de Saúde) e o Conselho Federal de Nutricionistas. Este quiz tem como objetivo principal promover a conscientização e o conhecimento sobre a importância da nutrição e dos serviços de saúde pública no Brasil.">
+    <meta name="keywords"
+        content="QUIZ CIARAMA MÁQUINAS 2023, Conselho Nacional de Secretarias Municipais de Saúde, Conselho Federal de Nutricionistas, Saúde públicaNutrição, Educação em saúde, Desafios interativos, Conscientização, Políticas de saúde, Nutrição clínica, Promoção da saúde, Workshops, Palestras, Especialistas em nutrição, Networking profissional, Inovações em saúdeProgramas de alimentação, Certificados de participação, Prêmios, Colaboração entre profissionais de saúde">
+    <meta name="robots" content="index, follow">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="language" content="Portuguese">
+    <meta name="author" content="Conselho Federal de Nutricionistas">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" href="css/custom.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
+    <style type="text/css">
+        body,
+        html {
+            height: 100%;
+        }
+
+        .full {
+            background: url('img/fundo6.png') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .center-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+    </style>
+
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="data.js"></script> <!-- Include the data.js file -->
+
+    <style>
+        .center-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .progress {
+            height: 20px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            transition: width 1s;
+        }
+
+        .green {
+            background-color: green;
+        }
+
+        .blue {
+            background-color: blue;
+        }
+
+        .orange {
+            background-color: orange;
+        }
+
+        .red {
+            background-color: red;
+        }
+
+        h2 {
+            margin: 10% 0 5% 0;
+            font-weight: bold;
+        }
+
+        button.btn.btn-light.mb-3.w-100 {
+            font-size: 20px;
+            padding: 3%;
+            border: solid;
+        }
+    </style>
+
+    <!-- Retorno Sonoro -->
+    <audio id="audio-success">
+        <source src="sucesso3.mp3" type="audio/mpeg">
+        Seu navegador não suporta o elemento de áudio.
+    </audio>
+</head>
+
+<body class="full">
+    <div class="container center-screen">
+        <div class="w-100 p-3">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <h1 class="text-center mb-4">
+                        <i class="fa fa-clock-o" aria-hidden="true"></i>
+                        <span id="timer"></span>
+                    </h1>
+
+                    <div class="progress">
+                        <div id="timerBar" class="progress-bar"></div>
+                    </div>
+
+                    <div id="questionContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTimer() {
+            let timerElement = document.getElementById('timer');
+            let timerBarElement = document.getElementById('timerBar');
+            let time = parseInt(timerElement.innerText, 10) || 120;
+            time--;
+
+            // Atualize a largura da barra de progresso com base no tempo restante
+            let progress = (time / 120) * 100;
+            timerBarElement.style.width = progress + '%';
+
+            timerElement.innerText = time;
+
+            // Atualize as classes CSS da barra de progresso com base no progresso
+            timerBarElement.classList.remove('green', 'blue', 'orange', 'red');
+            if (progress >= 90) {
+                timerBarElement.classList.add('green');
+            } else if (progress >= 70) {
+                timerBarElement.classList.add('blue');
+            } else if (progress >= 40) {
+                timerBarElement.classList.add('orange');
+            } else {
+                timerBarElement.classList.add('red');
+            }
+
+            if (time <= 0) {
+                endGame();
+            }
+        }
+
+        let questions;
+        let currentQuestionIndex = 0;
+        let correctAnswers = 0;
+        let timer;
+
+        // Use the perguntas variable directly
+        questions = _.sampleSize(perguntas, 5);
+        displayQuestion();
+        timer = setInterval(updateTimer, 1000);
+
+        function displayQuestion() {
+            let questionContainer = document.getElementById('questionContainer');
+            questionContainer.innerHTML = '';
+            let question = questions[currentQuestionIndex];
+            let questionElement = document.createElement('h2');
+            questionElement.innerHTML = question[0] + '<br/>'; // Adicione <br/> após o título da pergunta
+            questionContainer.appendChild(questionElement);
+            for (let i = 1; i <= 3; i++) {
+                let answerElement = document.createElement('button');
+                answerElement.innerText = question[i];
+                answerElement.classList.add('btn', 'btn-light', 'mb-3', 'w-100');
+                answerElement.addEventListener('click', function () {
+                    let correct = question[4] === String.fromCharCode(64 + i);
+                    if (correct) {
+                        correctAnswers++;
+                    }
+                    updateStats(question[0], correct);
+                    currentQuestionIndex++;
+                    if (currentQuestionIndex < questions.length) {
+                        displayQuestion();
+                    } else {
+                        endGame();
+                    }
+                });
+                questionContainer.appendChild(answerElement);
+            }
+        }
+
+        function updateStats(question, correct) {
+            let stats = JSON.parse(localStorage.getItem('stats')) || {};
+            if (!stats[question]) {
+                stats[question] = { correct: 0, incorrect: 0 };
+            }
+            if (correct) {
+                stats[question].correct++;
+            } else {
+                stats[question].incorrect++;
+            }
+            localStorage.setItem('stats', JSON.stringify(stats));
+        }
+
+        function endGame() {
+            // Reproduzindo o áudio
+            var audio = document.getElementById('audio-success');
+            audio.play();
+
+            clearInterval(timer);
+            Swal.fire({
+                title: correctAnswers >= 3 ? 'Parabéns, você venceu!' : 'Não foi dessa vez!',
+                icon: correctAnswers >= 3 ? 'success' : 'error',
+                timer: 10000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                didClose: () => {
+                    window.location.href = 'index.html';
+                }
+            });
+        }
+
+        // Associando a função ao botão
+        document.getElementById('show-alert').addEventListener('click', showAlert);
+    </script>
+</body>
+
+</html>
